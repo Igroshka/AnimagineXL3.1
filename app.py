@@ -58,7 +58,6 @@ def load_pipeline(model_name):
         use_safetensors=True,
         add_watermarker=False,
         use_auth_token=HF_TOKEN,
-        variant="fp16",
     )
 
     pipe.to(device)
