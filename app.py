@@ -31,7 +31,7 @@ USE_TORCH_COMPILE = os.getenv("USE_TORCH_COMPILE") == "1"
 ENABLE_CPU_OFFLOAD = os.getenv("ENABLE_CPU_OFFLOAD") == "1"
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "./outputs")
 
-MODEL = os.getenv("MODEL", "cagliostrolab/animagine-xl-3.1")
+MODEL = os.getenv("MODEL", "https://huggingface.co/cagliostrolab/animagine-xl-3.1/blob/main/animagine-xl-3.1.safetensors")
 
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
@@ -78,7 +78,7 @@ def generate(
     style_selector: str = "(None)",
     quality_selector: str = "Standard v3.1",
     use_upscaler: bool = False,
-    upscaler_strength: float = 0.5,
+    upscaler_strength: float = 0.55,
     upscale_by: float = 1.5,
     add_quality_tags: bool = True,
     progress=gr.Progress(track_tqdm=True),
