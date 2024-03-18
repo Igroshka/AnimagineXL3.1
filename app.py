@@ -168,11 +168,12 @@ def generate(
                 output_type="pil",
             ).images[0]
             
-        if image and IS_COLAB:
+        if images and IS_COLAB:
+            for image in images:
             filepath = utils.save_image(image, metadata, OUTPUT_DIR)
             logger.info(f"Image saved as {filepath} with metadata")
             
-        return image, metadata
+        return images, metadata
     except Exception as e:
         logger.exception(f"An error occurred: {e}")
         raise
@@ -316,7 +317,12 @@ with gr.Blocks(css="style.css", theme="NoCrypt/miku@1.2.1") as demo:
         with gr.Column(scale=3):
             with gr.Blocks():
                 run_button = gr.Button("Generate", variant="primary")
-            result = gr.Image(label="Result", show_label=False)
+            result = gr.Gallery(
+                label="Result", 
+                columns=1, 
+                preview=True, 
+                show_label=False
+            )
             with gr.Accordion(label="Generation Parameters", open=False):
                 gr_metadata = gr.JSON(label="Metadata", show_label=False)
             gr.Examples(
