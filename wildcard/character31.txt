@@ -74,7 +74,7 @@
 1boy, male focus, kirito, sword art online
 1girl, mikasa ackerman, shingeki no kyojin
 1girl, nakano nino, go-toubun no hanayome
-1girl, uzumaki naruto, naruto \(series\)
+1boy, male focus, uzumaki naruto, naruto \(series\)
 1girl, robin \(fire emblem\), fire emblem
 1girl, shirogane naoto, persona
 1girl, kafka \(honkai: star rail\), honkai: star rail
@@ -112,7 +112,7 @@
 1boy, male focus, yuuki makoto \(persona 3\), persona
 1girl, nakano yotsuba, go-toubun no hanayome
 1girl, izumi sagiri, eromanga sensei
-1girl, uchiha sasuke, naruto \(series\)
+1boy, uchiha sasuke, naruto \(series\)
 1girl, makinami mari illustrious, neon genesis evangelion
 1girl, nia \(xenoblade\), xenoblade chronicles \(series\)
 1girl, march 7th \(honkai: star rail\), honkai: star rail
@@ -2109,3 +2109,18 @@
 1girl, shinra tsubaki, high school dxd
 1boy, male focus, agil, sword art online
 1girl, shiba kuukaku, bleach
+1girl, kanade \(beast tamer\), beast tamer
+1girl, tania \(beast tamer\), beast tamer
+1boy, rein shroud \(beast tamer\), beast tamer
+1boy, yato \(noragami\), noragami
+1boy, yukine \(noragami\), noragami
+1boy, kazuma \(noragami\), noragami
+1girl, iki hiyori \(noragami\), noragami
+1girl, segawa hiro \(kakkou no iinazuke\), kakkou no iinazuke
+1girl, amano erika \(kakkou no iinazuke\), kakkou no iinazuke
+1girl, umino sachi \(kakkou no iinazuke\), kakkou no iinazuke
+1boy, umino nagi \(kakkou no iinazuke\), kakkou no iinazuke
+1girl, villhaze \(hikikomari kyuuketsuki no monmon\), hikikomari kyuuketsuki no monmon
+1girl, sakuna memoire \(hikikomari kyuuketsuki no monmon\), hikikomari kyuuketsuki no monmon
+1girl, maomao \(kusuriya no hitorigoto\), kusuriya no hitorigoto
+1boy, jinshi \(kusuriya no hitorigoto\), kusuriya no hitorigoto
