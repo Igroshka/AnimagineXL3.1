@@ -170,8 +170,8 @@ def generate(
             
         if images and IS_COLAB:
             for image in images:
-            filepath = utils.save_image(image, metadata, OUTPUT_DIR)
-            logger.info(f"Image saved as {filepath} with metadata")
+                filepath = utils.save_image(image, metadata, OUTPUT_DIR)
+                logger.info(f"Image saved as {filepath} with metadata")
             
         return images, metadata
     except Exception as e:
