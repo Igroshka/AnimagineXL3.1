@@ -146,7 +146,7 @@ def generate(
                 output_type="latent",
             ).images
             upscaled_latents = utils.upscale(latents, "nearest-exact", upscale_by)
-            image = upscaler_pipe(
+            images = upscaler_pipe(
                 prompt=prompt,
                 negative_prompt=negative_prompt,
                 image=upscaled_latents,
@@ -155,9 +155,9 @@ def generate(
                 strength=upscaler_strength,
                 generator=generator,
                 output_type="pil",
-            ).images[0]
+            ).images
         else:
-            image = pipe(
+            images = pipe(
                 prompt=prompt,
                 negative_prompt=negative_prompt,
                 width=width,
@@ -166,7 +166,7 @@ def generate(
                 num_inference_steps=num_inference_steps,
                 generator=generator,
                 output_type="pil",
-            ).images[0]
+            ).images
             
         if images and IS_COLAB:
             for image in images:
