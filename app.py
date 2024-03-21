@@ -11,10 +11,7 @@ import logging
 from PIL import Image, PngImagePlugin
 from datetime import datetime
 from diffusers.models import AutoencoderKL
-from diffusers import (
-    StableDiffusionXLPipeline, 
-    StableDiffusionXLImg2ImgPipeline
-)
+from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -31,7 +28,10 @@ USE_TORCH_COMPILE = os.getenv("USE_TORCH_COMPILE") == "1"
 ENABLE_CPU_OFFLOAD = os.getenv("ENABLE_CPU_OFFLOAD") == "1"
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "./outputs")
 
-MODEL = os.getenv("MODEL", "https://huggingface.co/cagliostrolab/animagine-xl-3.1/blob/main/animagine-xl-3.1.safetensors")
+MODEL = os.getenv(
+    "MODEL",
+    "https://huggingface.co/cagliostrolab/animagine-xl-3.1/blob/main/animagine-xl-3.1.safetensors",
+)
 
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
@@ -82,7 +82,7 @@ def generate(
     upscale_by: float = 1.5,
     add_quality_tags: bool = True,
     progress=gr.Progress(track_tqdm=True),
-) -> Image:
+):
     generator = utils.seed_everything(seed)
 
     width, height = utils.aspect_ratio_handler(
@@ -131,6 +131,7 @@ def generate(
         }
     else:
         metadata["use_upscaler"] = None
+    metadata["model"] = DESCRIPTION
     logger.info(json.dumps(metadata, indent=4))
 
     try:
@@ -167,13 +168,17 @@ def generate(
                 generator=generator,
                 output_type="pil",
             ).images
-            
-        if images and IS_COLAB:
-            for image in images:
-                filepath = utils.save_image(image, metadata, OUTPUT_DIR)
-                logger.info(f"Image saved as {filepath} with metadata")
-            
-        return images, metadata
+
+        if images:
+            image_paths = [
+                utils.save_image(image, metadata, OUTPUT_DIR, IS_COLAB)
+                for image in images
+            ]
+
+            for image_path in image_paths:
+                logger.info(f"Image saved as {image_path} with metadata")
+
+        return image_paths, metadata
     except Exception as e:
         logger.exception(f"An error occurred: {e}")
         raise
@@ -251,6 +256,22 @@ with gr.Blocks(css="style.css", theme="NoCrypt/miku@1.2.1") as demo:
                         value="896 x 1152",
                         container=True,
                     )
+                with gr.Group(visible=False) as custom_resolution:
+                    with gr.Row():
+                        custom_width = gr.Slider(
+                            label="Width",
+                            minimum=MIN_IMAGE_SIZE,
+                            maximum=MAX_IMAGE_SIZE,
+                            step=8,
+                            value=1024,
+                        )
+                        custom_height = gr.Slider(
+                            label="Height",
+                            minimum=MIN_IMAGE_SIZE,
+                            maximum=MAX_IMAGE_SIZE,
+                            step=8,
+                            value=1024,
+                        )
                 with gr.Group():
                     use_upscaler = gr.Checkbox(label="Use Upscaler", value=False)
                     with gr.Row() as upscaler_row:
@@ -269,22 +290,6 @@ with gr.Blocks(css="style.css", theme="NoCrypt/miku@1.2.1") as demo:
                             step=0.1,
                             value=1.5,
                             visible=False,
-                        )
-                with gr.Group(visible=False) as custom_resolution:
-                    with gr.Row():
-                        custom_width = gr.Slider(
-                            label="Width",
-                            minimum=MIN_IMAGE_SIZE,
-                            maximum=MAX_IMAGE_SIZE,
-                            step=8,
-                            value=1024,
-                        )
-                        custom_height = gr.Slider(
-                            label="Height",
-                            minimum=MIN_IMAGE_SIZE,
-                            maximum=MAX_IMAGE_SIZE,
-                            step=8,
-                            value=1024,
                         )
                 with gr.Group():
                     sampler = gr.Dropdown(
@@ -320,6 +325,7 @@ with gr.Blocks(css="style.css", theme="NoCrypt/miku@1.2.1") as demo:
             result = gr.Gallery(
                 label="Result", 
                 columns=1, 
+                height='100%', 
                 preview=True, 
                 show_label=False
             )
@@ -347,25 +353,12 @@ with gr.Blocks(css="style.css", theme="NoCrypt/miku@1.2.1") as demo:
         api_name=False,
     )
 
-    inputs = [
-        prompt,
-        negative_prompt,
-        seed,
-        custom_width,
-        custom_height,
-        guidance_scale,
-        num_inference_steps,
-        sampler,
-        aspect_ratio_selector,
-        style_selector,
-        quality_selector,
-        use_upscaler,
-        upscaler_strength,
-        upscale_by,
-        add_quality_tags,
-    ]
-
-    prompt.submit(
+    gr.on(
+        triggers=[
+            prompt.submit,
+            negative_prompt.submit,
+            run_button.click,
+        ],
         fn=utils.randomize_seed_fn,
         inputs=[seed, randomize_seed],
         outputs=seed,
@@ -373,32 +366,26 @@ with gr.Blocks(css="style.css", theme="NoCrypt/miku@1.2.1") as demo:
         api_name=False,
     ).then(
         fn=generate,
-        inputs=inputs,
-        outputs=result,
+        inputs=[
+            prompt,
+            negative_prompt,
+            seed,
+            custom_width,
+            custom_height,
+            guidance_scale,
+            num_inference_steps,
+            sampler,
+            aspect_ratio_selector,
+            style_selector,
+            quality_selector,
+            use_upscaler,
+            upscaler_strength,
+            upscale_by,
+            add_quality_tags,
+        ],
+        outputs=[result, gr_metadata],
         api_name="run",
     )
-    negative_prompt.submit(
-        fn=utils.randomize_seed_fn,
-        inputs=[seed, randomize_seed],
-        outputs=seed,
-        queue=False,
-        api_name=False,
-    ).then(
-        fn=generate,
-        inputs=inputs,
-        outputs=result,
-        api_name=False,
-    )
-    run_button.click(
-        fn=utils.randomize_seed_fn,
-        inputs=[seed, randomize_seed],
-        outputs=seed,
-        queue=False,
-        api_name=False,
-    ).then(
-        fn=generate,
-        inputs=inputs,
-        outputs=[result, gr_metadata],
-        api_name=False,
-    )
-demo.queue(max_size=20).launch(debug=IS_COLAB, share=IS_COLAB)
+
+if __name__ == "__main__":
+    demo.queue(max_size=20).launch(debug=IS_COLAB, share=IS_COLAB)

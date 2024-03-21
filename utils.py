@@ -4,6 +4,7 @@ import random
 import numpy as np
 import json
 import torch
+import uuid
 from PIL import Image, PngImagePlugin
 from datetime import datetime
 from dataclasses import dataclass
@@ -158,12 +159,14 @@ def preprocess_image_dimensions(width, height):
     return width, height
 
 
-def save_image(image, metadata, output_dir):
-    current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+def save_image(image, metadata, output_dir, is_colab):
+    if is_colab:
+        current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"image_{current_time}.png"   
+    else:
+        filename = str(uuid.uuid4()) + ".png"
     os.makedirs(output_dir, exist_ok=True)
-    filename = f"image_{current_time}.png"
     filepath = os.path.join(output_dir, filename)
-
     metadata_str = json.dumps(metadata)
     info = PngImagePlugin.PngInfo()
     info.add_text("metadata", metadata_str)
