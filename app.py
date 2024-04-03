@@ -107,7 +107,7 @@ def generate(
 
     if use_upscaler:
         upscaler_pipe = StableDiffusionXLImg2ImgPipeline(**pipe.components)
-    metadata = {
+    parameters = {
         "prompt": prompt,
         "negative_prompt": negative_prompt,
         "resolution": f"{width} x {height}",
@@ -118,23 +118,25 @@ def generate(
         "sdxl_style": style_selector,
         "add_quality_tags": add_quality_tags,
         "quality_tags": quality_selector,
-        "Model hash": "e3c47aedb0",
-        "Model": "animagine-xl-3.1",
     }
 
     if use_upscaler:
         new_width = int(width * upscale_by)
         new_height = int(height * upscale_by)
-        metadata["use_upscaler"] = {
+        parameters["use_upscaler"] = {
             "upscale_method": "nearest-exact",
             "upscaler_strength": upscaler_strength,
             "upscale_by": upscale_by,
             "new_resolution": f"{new_width} x {new_height}",
         }
     else:
-        metadata["use_upscaler"] = None
-    metadata["model"] = DESCRIPTION
-    logger.info(json.dumps(metadata, indent=4))
+        parameters["use_upscaler"] = None
+        parameters["Model"] = {
+            "Model": DESCRIPTION,
+            "Model hash": "e3c47aedb0",
+        }
+    
+    logger.info(json.dumps(parameters, indent=4))
 
     try:
         if use_upscaler:
@@ -173,14 +175,14 @@ def generate(
 
         if images:
             image_paths = [
-                utils.save_image(image, metadata, OUTPUT_DIR, IS_COLAB)
+                utils.save_image(image, parameters, OUTPUT_DIR, IS_COLAB)
                 for image in images
             ]
 
             for image_path in image_paths:
                 logger.info(f"Image saved as {image_path} with metadata")
 
-        return image_paths, metadata
+        return image_paths, parameters
     except Exception as e:
         logger.exception(f"An error occurred: {e}")
         raise
