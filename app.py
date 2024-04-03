@@ -334,11 +334,11 @@ with gr.Blocks(css="style.css", theme="NoCrypt/miku@1.2.1") as demo:
                 show_label=False
             )
             with gr.Accordion(label="Generation Parameters", open=False):
-                gr_metadata = gr.JSON(label="parameters", show_label=False)
+                gr_parameters = gr.JSON(label="parameters", show_label=False)
             gr.Examples(
                 examples=config.examples,
                 inputs=prompt,
-                outputs=[result, gr_metadata],
+                outputs=[result, gr_parameters],
                 fn=lambda *args, **kwargs: generate(*args, use_upscaler=True, **kwargs),
                 cache_examples=CACHE_EXAMPLES,
             )
@@ -387,7 +387,7 @@ with gr.Blocks(css="style.css", theme="NoCrypt/miku@1.2.1") as demo:
             upscale_by,
             add_quality_tags,
         ],
-        outputs=[result, gr_metadata],
+        outputs=[result, gr_parameters],
         api_name="run",
     )
 
