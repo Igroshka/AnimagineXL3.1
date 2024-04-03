@@ -118,6 +118,8 @@ def generate(
         "sdxl_style": style_selector,
         "add_quality_tags": add_quality_tags,
         "quality_tags": quality_selector,
+        "Model hash": "e3c47aedb0",
+        "Model": "animagine-xl-3.1",
     }
 
     if use_upscaler:
@@ -330,7 +332,7 @@ with gr.Blocks(css="style.css", theme="NoCrypt/miku@1.2.1") as demo:
                 show_label=False
             )
             with gr.Accordion(label="Generation Parameters", open=False):
-                gr_metadata = gr.JSON(label="Metadata", show_label=False)
+                gr_metadata = gr.JSON(label="parameters", show_label=False)
             gr.Examples(
                 examples=config.examples,
                 inputs=prompt,
