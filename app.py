@@ -107,7 +107,7 @@ def generate(
 
     if use_upscaler:
         upscaler_pipe = StableDiffusionXLImg2ImgPipeline(**pipe.components)
-    parameters = {
+    metadata = {
         "prompt": prompt,
         "negative_prompt": negative_prompt,
         "resolution": f"{width} x {height}",
@@ -123,20 +123,20 @@ def generate(
     if use_upscaler:
         new_width = int(width * upscale_by)
         new_height = int(height * upscale_by)
-        parameters["use_upscaler"] = {
+        metadata["use_upscaler"] = {
             "upscale_method": "nearest-exact",
             "upscaler_strength": upscaler_strength,
             "upscale_by": upscale_by,
             "new_resolution": f"{new_width} x {new_height}",
         }
     else:
-        parameters["use_upscaler"] = None
-        parameters["Model"] = {
+        metadata["use_upscaler"] = None
+        metadata["Model"] = {
             "Model": DESCRIPTION,
             "Model hash": "e3c47aedb0",
         }
     
-    logger.info(json.dumps(parameters, indent=4))
+    logger.info(json.dumps(metadata, indent=4))
 
     try:
         if use_upscaler:
@@ -175,14 +175,14 @@ def generate(
 
         if images:
             image_paths = [
-                utils.save_image(image, parameters, OUTPUT_DIR, IS_COLAB)
+                utils.save_image(image, metadata, OUTPUT_DIR, IS_COLAB)
                 for image in images
             ]
 
             for image_path in image_paths:
                 logger.info(f"Image saved as {image_path} with metadata")
 
-        return image_paths, parameters
+        return image_paths, metadata
     except Exception as e:
         logger.exception(f"An error occurred: {e}")
         raise
@@ -334,11 +334,11 @@ with gr.Blocks(css="style.css", theme="NoCrypt/miku@1.2.1") as demo:
                 show_label=False
             )
             with gr.Accordion(label="Generation Parameters", open=False):
-                gr_parameters = gr.JSON(label="parameters", show_label=False)
+                gr_metadata = gr.JSON(label="metadata", show_label=False)
             gr.Examples(
                 examples=config.examples,
                 inputs=prompt,
-                outputs=[result, gr_parameters],
+                outputs=[result, gr_metadata],
                 fn=lambda *args, **kwargs: generate(*args, use_upscaler=True, **kwargs),
                 cache_examples=CACHE_EXAMPLES,
             )
@@ -387,7 +387,7 @@ with gr.Blocks(css="style.css", theme="NoCrypt/miku@1.2.1") as demo:
             upscale_by,
             add_quality_tags,
         ],
-        outputs=[result, gr_parameters],
+        outputs=[result, gr_metadata],
         api_name="run",
     )
 

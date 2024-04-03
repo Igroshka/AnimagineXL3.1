@@ -169,7 +169,7 @@ def save_image(image, metadata, output_dir, is_colab):
     filepath = os.path.join(output_dir, filename)
     metadata_str = json.dumps(metadata)
     info = PngImagePlugin.PngInfo()
-    info.add_text("metadata", metadata_str)
+    info.add_text("parameters", metadata_str)
     image.save(filepath, "PNG", pnginfo=info)
     return filepath
     
