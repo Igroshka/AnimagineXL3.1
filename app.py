@@ -206,190 +206,198 @@ quality_prompt = {
 
 wildcard_files = utils.load_wildcard_files("wildcard")
 
-with gr.Blocks(css="style.css", theme="NoCrypt/miku@1.2.1") as demo:
-    title = gr.HTML(
-        f"""<h1><span>{DESCRIPTION}</span></h1>""",
-        elem_id="title",
-    )
-    gr.Markdown(
-        f"""Gradio demo for [cagliostrolab/animagine-xl-3.1](https://huggingface.co/cagliostrolab/animagine-xl-3.1)""",
-        elem_id="subtitle",
-    )
-    gr.DuplicateButton(
-        value="Duplicate Space for private use",
-        elem_id="duplicate-button",
-        visible=os.getenv("SHOW_DUPLICATE_BUTTON") == "1",
-    )
-    with gr.Row():
-        with gr.Column(scale=2):
-            with gr.Tab("Txt2img"):
-                with gr.Group():
-                    prompt = gr.Text(
-                        label="Prompt",
-                        max_lines=5,
-                        placeholder="Enter your prompt",
-                    )
-                    negative_prompt = gr.Text(
-                        label="Negative Prompt",
-                        max_lines=5,
-                        placeholder="Enter a negative prompt",
-                    )
-                    with gr.Accordion(label="Quality Tags", open=True):
-                        add_quality_tags = gr.Checkbox(
-                            label="Add Quality Tags", value=True
-                        )
-                        quality_selector = gr.Dropdown(
-                            label="Quality Tags Presets",
-                            interactive=True,
-                            choices=list(quality_prompt.keys()),
-                            value="Standard v3.1",
-                        )
-            with gr.Tab("Advanced Settings"):
-                with gr.Group():
-                    style_selector = gr.Radio(
-                        label="Style Preset",
-                        container=True,
-                        interactive=True,
-                        choices=list(styles.keys()),
-                        value="(None)",
-                    )
-                with gr.Group():
-                    aspect_ratio_selector = gr.Radio(
-                        label="Aspect Ratio",
-                        choices=config.aspect_ratios,
-                        value="896 x 1152",
-                        container=True,
-                    )
-                with gr.Group(visible=False) as custom_resolution:
-                    with gr.Row():
-                        custom_width = gr.Slider(
-                            label="Width",
-                            minimum=MIN_IMAGE_SIZE,
-                            maximum=MAX_IMAGE_SIZE,
-                            step=8,
-                            value=1024,
-                        )
-                        custom_height = gr.Slider(
-                            label="Height",
-                            minimum=MIN_IMAGE_SIZE,
-                            maximum=MAX_IMAGE_SIZE,
-                            step=8,
-                            value=1024,
-                        )
-                with gr.Group():
-                    use_upscaler = gr.Checkbox(label="Use Upscaler", value=False)
-                    with gr.Row() as upscaler_row:
-                        upscaler_strength = gr.Slider(
-                            label="Strength",
-                            minimum=0,
-                            maximum=1,
-                            step=0.05,
-                            value=0.55,
-                            visible=False,
-                        )
-                        upscale_by = gr.Slider(
-                            label="Upscale by",
-                            minimum=1,
-                            maximum=1.5,
-                            step=0.1,
-                            value=1.5,
-                            visible=False,
-                        )
-                with gr.Group():
-                    sampler = gr.Dropdown(
-                        label="Sampler",
-                        choices=config.sampler_list,
-                        interactive=True,
-                        value="Euler a",
-                    )
-                with gr.Group():
-                    seed = gr.Slider(
-                        label="Seed", minimum=0, maximum=utils.MAX_SEED, step=1, value=0
-                    )
-                    randomize_seed = gr.Checkbox(label="Randomize seed", value=True)
-                with gr.Group():
-                    with gr.Row():
-                        guidance_scale = gr.Slider(
-                            label="Guidance scale",
-                            minimum=1,
-                            maximum=12,
-                            step=0.1,
-                            value=7.0,
-                        )
-                        num_inference_steps = gr.Slider(
-                            label="Number of inference steps",
-                            minimum=1,
-                            maximum=50,
-                            step=1,
-                            value=28,
-                        )
-        with gr.Column(scale=3):
-            with gr.Blocks():
-                run_button = gr.Button("Generate", variant="primary")
-            result = gr.Gallery(
-                label="Result", 
-                columns=1, 
-                height='100%', 
-                preview=True, 
-                show_label=False
-            )
-            with gr.Accordion(label="Generation Parameters", open=False):
-                gr_metadata = gr.JSON(label="metadata", show_label=False)
-            gr.Examples(
-                examples=config.examples,
-                inputs=prompt,
-                outputs=[result, gr_metadata],
-                fn=lambda *args, **kwargs: generate(*args, use_upscaler=True, **kwargs),
-                cache_examples=CACHE_EXAMPLES,
-            )
-    use_upscaler.change(
-        fn=lambda x: [gr.update(visible=x), gr.update(visible=x)],
-        inputs=use_upscaler,
-        outputs=[upscaler_strength, upscale_by],
-        queue=False,
-        api_name=False,
-    )
-    aspect_ratio_selector.change(
-        fn=lambda x: gr.update(visible=x == "Custom"),
-        inputs=aspect_ratio_selector,
-        outputs=custom_resolution,
-        queue=False,
-        api_name=False,
-    )
+def gradio_app():
+    with gr.Blocks(css="style.css", theme="NoCrypt/miku@1.2.1") as demo:
+        gr.HTML(
+            f"""<h1><span>{DESCRIPTION}</span></h1>""",
+            elem_id="title",
+        )
+        gr.Markdown(
+            f"""Gradio demo for [cagliostrolab/animagine-xl-3.1](https://huggingface.co/cagliostrolab/animagine-xl-3.1)""",
+            elem_id="subtitle",
+        )
+        gr.DuplicateButton(
+            value="Duplicate Space for private use",
+            elem_id="duplicate-button",
+            visible=os.getenv("SHOW_DUPLICATE_BUTTON") == "1",
+        )
 
-    gr.on(
-        triggers=[
-            prompt.submit,
-            negative_prompt.submit,
-            run_button.click,
-        ],
-        fn=utils.randomize_seed_fn,
-        inputs=[seed, randomize_seed],
-        outputs=seed,
-        queue=False,
-        api_name=False,
-    ).then(
-        fn=generate,
-        inputs=[
-            prompt,
-            negative_prompt,
-            seed,
-            custom_width,
-            custom_height,
-            guidance_scale,
-            num_inference_steps,
-            sampler,
-            aspect_ratio_selector,
-            style_selector,
-            quality_selector,
-            use_upscaler,
-            upscaler_strength,
-            upscale_by,
-            add_quality_tags,
-        ],
-        outputs=[result, gr_metadata],
-        api_name="run",
-    )
+        with gr.Row():
+            with gr.Column(scale=2):
+                with gr.Tab("Txt2img"):
+                    with gr.Group():
+                        prompt = gr.Text(
+                            label="Prompt",
+                            max_lines=5,
+                            placeholder="Enter your prompt",
+                        )
+                        negative_prompt = gr.Text(
+                            label="Negative Prompt",
+                            max_lines=5,
+                            placeholder="Enter a negative prompt",
+                        )
+                        with gr.Accordion(label="Quality Tags", open=True):
+                            add_quality_tags = gr.Checkbox(
+                                label="Add Quality Tags", value=True
+                            )
+                            quality_selector = gr.Dropdown(
+                                label="Quality Tags Presets",
+                                interactive=True,
+                                choices=list(quality_prompt.keys()),
+                                value="Standard v3.1",
+                            )
+                with gr.Tab("Advanced Settings"):
+                    with gr.Group():
+                        style_selector = gr.Radio(
+                            label="Style Preset",
+                            container=True,
+                            interactive=True,
+                            choices=list(styles.keys()),
+                            value="(None)",
+                        )
+                    with gr.Group():
+                        aspect_ratio_selector = gr.Radio(
+                            label="Aspect Ratio",
+                            choices=config.aspect_ratios,
+                            value="896 x 1152",
+                            container=True,
+                        )
+                        with gr.Group(visible=False) as custom_resolution:
+                            with gr.Row():
+                                custom_width = gr.Slider(
+                                    label="Width",
+                                    minimum=MIN_IMAGE_SIZE,
+                                    maximum=MAX_IMAGE_SIZE,
+                                    step=8,
+                                    value=1024,
+                                )
+                                custom_height = gr.Slider(
+                                    label="Height",
+                                    minimum=MIN_IMAGE_SIZE,
+                                    maximum=MAX_IMAGE_SIZE,
+                                    step=8,
+                                    value=1024,
+                                )
+                    with gr.Group():
+                        use_upscaler = gr.Checkbox(label="Use Upscaler", value=False)
+                        with gr.Row() as upscaler_row:
+                            upscaler_strength = gr.Slider(
+                                label="Strength",
+                                minimum=0,
+                                maximum=1,
+                                step=0.05,
+                                value=0.55,
+                                visible=False,
+                            )
+                            upscale_by = gr.Slider(
+                                label="Upscale by",
+                                minimum=1,
+                                maximum=1.5,
+                                step=0.1,
+                                value=1.5,
+                                visible=False,
+                            )
+                    with gr.Group():
+                        sampler = gr.Dropdown(
+                            label="Sampler",
+                            choices=config.sampler_list,
+                            interactive=True,
+                            value="Euler a",
+                        )
+                    with gr.Group():
+                        seed = gr.Slider(
+                            label="Seed", minimum=0, maximum=utils.MAX_SEED, step=1, value=0
+                        )
+                        randomize_seed = gr.Checkbox(label="Randomize seed", value=True)
+                    with gr.Group():
+                        with gr.Row():
+                            guidance_scale = gr.Slider(
+                                label="Guidance scale",
+                                minimum=1,
+                                maximum=12,
+                                step=0.1,
+                                value=7.0,
+                            )
+                            num_inference_steps = gr.Slider(
+                                label="Number of inference steps",
+                                minimum=1,
+                                maximum=50,
+                                step=1,
+                                value=28,
+                            )
+
+            with gr.Column(scale=3):
+                with gr.Blocks():
+                    run_button = gr.Button("Generate", variant="primary")
+                result = gr.Gallery(
+                    label="Result",
+                    columns=1,
+                    height='100%',
+                    preview=True,
+                    show_label=False
+                )
+                with gr.Accordion(label="Generation Parameters", open=False):
+                    gr_metadata = gr.JSON(label="metadata", show_label=False)
+                gr.Examples(
+                    examples=config.examples,
+                    inputs=prompt,
+                    outputs=[result, gr_metadata],
+                    fn=lambda *args, **kwargs: generate(*args, use_upscaler=True, **kwargs),
+                    cache_examples=CACHE_EXAMPLES,
+                )
+
+        use_upscaler.change(
+            fn=lambda x: [gr.update(visible=x), gr.update(visible=x)],
+            inputs=use_upscaler,
+            outputs=[upscaler_strength, upscale_by],
+            queue=False,
+            api_name=False,
+        )
+        aspect_ratio_selector.change(
+            fn=lambda x: gr.update(visible=x == "Custom"),
+            inputs=aspect_ratio_selector,
+            outputs=custom_resolution,
+            queue=False,
+            api_name=False,
+        )
+
+        gr.on(
+            triggers=[
+                prompt.submit,
+                negative_prompt.submit,
+                run_button.click,
+            ],
+            fn=utils.randomize_seed_fn,
+            inputs=[seed, randomize_seed],
+            outputs=seed,
+            queue=False,
+            api_name=False,
+        ).then(
+            fn=generate,
+            inputs=[
+                prompt,
+                negative_prompt,
+                seed,
+                custom_width,
+                custom_height,
+                guidance_scale,
+                num_inference_steps,
+                sampler,
+                aspect_ratio_selector,
+                style_selector,
+                quality_selector,
+                use_upscaler,
+                upscaler_strength,
+                upscale_by,
+                add_quality_tags,
+            ],
+            outputs=[result, gr_metadata],
+            api_name="run",
+        )
+    return demo
+
+demo = gradio_app()
+
 
 if __name__ == "__main__":
     demo.queue(max_size=20).launch(debug=IS_COLAB, share=IS_COLAB)
