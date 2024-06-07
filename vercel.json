@@ -1,0 +1,5 @@
+{
+  "builds": [
+    { "src": "app.py", "use": "python@3.8" }
+  ]
+}
