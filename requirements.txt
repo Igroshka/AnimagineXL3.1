@@ -1,6 +1,6 @@
 accelerate==0.27.2
 diffusers==0.26.3
-gradio==4.20.0
+gradio
 invisible-watermark==0.2.0
 Pillow==10.2.0
 spaces==0.24.0
